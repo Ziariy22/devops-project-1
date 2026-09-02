@@ -11,3 +11,18 @@ service:
   targetPort: 5000
 
 containerPort: 5000
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+ingress:
+  enabled: true
+
+config:
+  appEnv: "development"
+
+secret:
+  appSecret: "devops-project-secret"

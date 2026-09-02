@@ -19,6 +19,25 @@ spec:
           ports:
             - containerPort: {{ .Values.containerPort }}
 
+          resources:
+            requests:
+              cpu: 100m
+            limits:
+              cpu: 500m
+
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "devops-project-1.fullname" . }}
+                  key: APP_ENV
+
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "devops-project-1.fullname" . }}
+                  key: APP_SECRET
+
           livenessProbe:
             httpGet:
               path: /health
