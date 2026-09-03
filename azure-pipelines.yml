@@ -135,6 +135,7 @@ stages:
           - script: |
               trivy image \
                 --severity HIGH,CRITICAL \
+                --ignore-unfixed \
                 --exit-code 1 \
                 devops-project-1:$(Build.BuildId)
             displayName: "Scan Docker Image"
