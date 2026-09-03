@@ -97,10 +97,52 @@ stages:
               docker rm -f devops-project-1-test
             displayName: "Cleanup Test Container"
 
+  - stage: Security
+    displayName: "Security Scan"
+
+    dependsOn: Docker
+
+    jobs:
+      - job: TrivyScan
+        displayName: "Scan Docker Image"
+
+        steps:
+
+          - checkout: self
+            displayName: "Checkout Repository"
+
+          - script: |
+              docker build \
+                -t devops-project-1:$(Build.BuildId) \
+                .
+            displayName: "Build Docker Image for Scan"
+
+          - script: |
+              sudo apt-get update
+              sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+
+              wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+                | gpg --dearmor \
+                | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+              echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" \
+                | sudo tee /etc/apt/sources.list.d/trivy.list
+
+              sudo apt-get update
+              sudo apt-get install -y trivy
+            displayName: "Install Trivy"
+
+          - script: |
+              trivy image \
+                --severity HIGH,CRITICAL \
+                --exit-code 1 \
+                devops-project-1:$(Build.BuildId)
+            displayName: "Scan Docker Image"
+
   - stage: Helm
     displayName: "Helm Validation"
 
-    dependsOn: Docker
+    dependsOn: Security
 
     jobs:
       - job: HelmValidation
