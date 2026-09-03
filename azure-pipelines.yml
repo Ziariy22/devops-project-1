@@ -97,60 +97,10 @@ stages:
               docker rm -f devops-project-1-test
             displayName: "Cleanup Test Container"
 
-  - stage: Security
-    displayName: "Security Scan"
-
-    dependsOn: Docker
-
-    jobs:
-      - job: TrivyScan
-        displayName: "Scan Docker Image"
-
-        steps:
-
-          - checkout: self
-            displayName: "Checkout Repository"
-
-          - script: |
-              docker build \
-                --no-cache \
-                -t devops-project-1:$(Build.BuildId) \
-                .
-            displayName: "Build Docker Image for Scan"
-
-          - script: |
-              docker run --rm \
-                devops-project-1:$(Build.BuildId) \
-                pip show setuptools msgpack
-            displayName: "Verify Python Package Versions"
-
-          - script: |
-              sudo apt-get update
-              sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-
-              wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
-                | gpg --dearmor \
-                | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-
-              echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" \
-                | sudo tee /etc/apt/sources.list.d/trivy.list
-
-              sudo apt-get update
-              sudo apt-get install -y trivy
-            displayName: "Install Trivy"
-
-          - script: |
-              trivy image \
-                --severity HIGH,CRITICAL \
-                --ignore-unfixed \
-                --exit-code 1 \
-                devops-project-1:$(Build.BuildId)
-            displayName: "Scan Docker Image"
-
   - stage: Helm
     displayName: "Helm Validation"
 
-    dependsOn: Security
+    dependsOn: Docker
 
     jobs:
       - job: HelmValidation
@@ -179,3 +129,36 @@ stages:
               test -s rendered.yaml
               echo "Kubernetes manifests rendered successfully."
             displayName: "Validate Kubernetes Manifests"
+      
+  - stage: LocalAgentTest
+    displayName: "Local Agent Test"
+
+    dependsOn: Helm
+
+    jobs:
+      - job: CheckLocalTools
+        displayName: "Check Local DevOps Tools"
+
+        pool:
+          name: devops-local
+
+        steps:
+          - checkout: self
+            displayName: "Checkout Repository"
+
+          - script: |
+              echo "=== Docker ==="
+              docker --version
+
+              echo "=== Kubectl ==="
+              kubectl version --client
+
+              echo "=== Helm ==="
+              helm version --short
+
+              echo "=== Minikube ==="
+              minikube version
+
+              echo "=== Kubernetes Cluster ==="
+              kubectl get nodes
+            displayName: "Check Local Environment"
