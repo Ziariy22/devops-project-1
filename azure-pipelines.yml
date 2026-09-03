@@ -113,9 +113,16 @@ stages:
 
           - script: |
               docker build \
+                --no-cache \
                 -t devops-project-1:$(Build.BuildId) \
                 .
             displayName: "Build Docker Image for Scan"
+
+          - script: |
+              docker run --rm \
+                devops-project-1:$(Build.BuildId) \
+                pip show setuptools msgpack
+            displayName: "Verify Python Package Versions"
 
           - script: |
               sudo apt-get update
