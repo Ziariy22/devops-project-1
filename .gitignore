@@ -1,4 +1,13 @@
-__pycache__/
-*.pyc
-.venv/
-.env
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+
+# Terraform lock file
+# .terraform.lock.hcl should be committed
+
+# Terraform crash logs
+crash.log
+crash.*.log
