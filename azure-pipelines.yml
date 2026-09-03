@@ -39,13 +39,13 @@ stages:
 
 
   - stage: Docker
-    displayName: "Docker Build"
+    displayName: "Docker Build & Test"
 
     dependsOn: Validate
 
     jobs:
       - job: DockerBuild
-        displayName: "Build Docker Image"
+        displayName: "Build and Test Docker Image"
 
         steps:
 
@@ -57,3 +57,20 @@ stages:
                 -t devops-project-1:$(Build.BuildId) \
                 .
             displayName: "Build Docker Image"
+
+          - script: |
+              docker run -d \
+                --name devops-project-1-test \
+                -p 5000:5000 \
+                devops-project-1:$(Build.BuildId)
+            displayName: "Start Test Container"
+
+          - script: |
+              sleep 5
+              curl --fail http://localhost:5000/health
+            displayName: "Health Check"
+
+          - script: |
+              docker logs devops-project-1-test
+              docker rm -f devops-project-1-test
+            displayName: "Cleanup Test Container"
