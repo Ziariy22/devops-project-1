@@ -17,7 +17,6 @@ stages:
     displayName: "Validate"
 
     jobs:
-
       - job: Validate
         displayName: "Validate Project"
 
@@ -28,8 +27,12 @@ stages:
 
           - script: |
               echo "Validating project structure..."
+
               test -f Dockerfile
               test -f app/app.py
               test -f app/requirements.txt
               test -d helm/devops-project-1
+              test -f terraform/main.tf
+
+              echo "Project structure is valid."
             displayName: "Validate Project Structure"
