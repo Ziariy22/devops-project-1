@@ -36,3 +36,24 @@ stages:
 
               echo "Project structure is valid."
             displayName: "Validate Project Structure"
+
+
+  - stage: Docker
+    displayName: "Docker Build"
+
+    dependsOn: Validate
+
+    jobs:
+      - job: DockerBuild
+        displayName: "Build Docker Image"
+
+        steps:
+
+          - checkout: self
+            displayName: "Checkout Repository"
+
+          - script: |
+              docker build \
+                -t devops-project-1:$(Build.BuildId) \
+                .
+            displayName: "Build Docker Image"
