@@ -37,7 +37,6 @@ stages:
               echo "Project structure is valid."
             displayName: "Validate Project Structure"
 
-
   - stage: Docker
     displayName: "Docker Build & Test"
 
@@ -74,3 +73,30 @@ stages:
               docker logs devops-project-1-test
               docker rm -f devops-project-1-test
             displayName: "Cleanup Test Container"
+
+  - stage: Helm
+    displayName: "Helm Validation"
+
+    dependsOn: Docker
+
+    jobs:
+      - job: HelmValidation
+        displayName: "Validate Helm Chart"
+
+        steps:
+
+          - checkout: self
+            displayName: "Checkout Repository"
+
+          - task: HelmInstaller@1
+            displayName: "Install Helm"
+            inputs:
+              helmVersionToInstall: "latest"
+
+          - script: |
+              helm lint ./helm/devops-project-1
+            displayName: "Helm Lint"
+
+          - script: |
+              helm template devops-project-1 ./helm/devops-project-1
+            displayName: "Render Helm Templates"
